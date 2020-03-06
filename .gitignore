@@ -1,0 +1,8 @@
+.idea
+
+src/main
+src/src/build
+src/logs
+
+.DS_Store
+src/gomailer.exe
