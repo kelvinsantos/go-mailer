@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"MailerGo/src/env"
-	"MailerGo/src/types"
+	"kelvin.com/mailer/src/env"
+	"kelvin.com/mailer/src/types"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -24,11 +24,12 @@ func Init() {
 	}
 
 	env.GO_MAILER_AUTH_SECRET = GetEnvWithDefault("GO_MAILER_AUTH_SECRET", "")
-	env.GO_MAILER_AWS_ACCESS_KEY = GetEnvWithDefault("GO_MAILER_AWS_ACCESS_KEY", "")
-	env.GO_MAILER_AWS_SECRET_KEY = GetEnvWithDefault("GO_MAILER_AWS_SECRET_KEY", "")
-	env.GO_MAILER_AWS_REGION = GetEnvWithDefault("GO_MAILER_AWS_REGION", "us-west-2")
+	env.GO_MAILER_AWS_ACCOUNT = GetEnvWithDefault("GO_MAILER_AWS_ACCOUNT", "")
+	env.GO_MAILER_AWS_REGION = GetEnvWithDefault("GO_MAILER_AWS_REGION", "")
 	env.GO_MAILER_PORT = GetEnvWithDefault("GO_MAILER_PORT", "")
-	env.GO_MOCK_EMAIL = GetEnvWithDefault("GO_MOCK_EMAIL", "")
+	env.GO_MAILER_MOCK_EMAIL = GetEnvWithDefault("GO_MAILER_MOCK_EMAIL", "")
+	env.GO_MAILER_DB_URI = GetEnvWithDefault("GO_MAILER_DB_URI", "")
+	env.GO_MAILER_DB_NAME = GetEnvWithDefault("GO_MAILER_DB_NAME", "")
 
 	log.Println("Succesfully loaded environment variables")
 }

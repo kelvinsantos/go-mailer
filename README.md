@@ -1,8 +1,30 @@
 
 # Go Mailer Service
 
+## Pre-requisite
+```
+- aws cli
+
+# configure aws cli
+$ aws configure
+    AWS Access Key ID: *******************
+    AWS Secret Access Key: *******************
+    Default region name: us-west-1
+    Default output format: json
+
+# then we also need to add new profile for aws credentials
+$ vi ~/.aws/credentials
+    ...
+
+    [go-mailer-dev-account]
+    aws_access_key_id = *******************
+    aws_secret_access_key = *******************
+
+    ...
+```
+
 ## Development Build Setup
-``` bash
+```
 # go to src directory
 $ cd go-mailer/src
 
@@ -17,7 +39,7 @@ $ go run build main.go
 ```
 
 ## Production Build Setup
-``` bash
+```
 # prerequisite
 - docker
 - docker-compose
@@ -27,14 +49,14 @@ docker-compose up -d
 ```
 
 ## Running Unit Tests
-``` bash
+```
 # running the test
 TODO: Add unit tests
 ```
 
 ## API Documentation
 
-``` bash
+```
 POST http://localhost:9091/api/send-email
 
 Sample request:

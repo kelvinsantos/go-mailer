@@ -3,14 +3,12 @@ FROM golang:latest
 
 # Set the Current Working Directory inside the container
 RUN mkdir /app
-ADD ./src /app
-WORKDIR /app
+ADD . /app
+RUN cd /app/src && go mod download
+WORKDIR /app/src
 
-# Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
-RUN go mod download
+RUN go build -o gomailer main.go 
 
-# Build the Go app
-RUN go build -o mailer
+EXPOSE 9090
 
-# Command to run the executable
-CMD ["./mailer"]
+CMD ["./gomailer"]

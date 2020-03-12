@@ -1,22 +1,22 @@
-package store
+package services
 
 import (
-	"MailerGo/src/decorator"
-	"MailerGo/src/env"
-	"MailerGo/src/types"
-	"MailerGo/src/utils"
 	"bytes"
+	"context"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"io/ioutil"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"mime/multipart"
-	"net/http"
 	"net/textproto"
+	"kelvin.com/mailer/src/env"
+	"kelvin.com/mailer/src/types"
 	"strings"
+	"time"
 
 	//go get -u github.com/aws/aws-sdk-go
 	"github.com/aws/aws-sdk-go/aws"
@@ -24,9 +24,9 @@ import (
 )
 
 const (
-	// Replace customer@gmail.com with your "From" address.
+	// Replace s.kelvinjohn@gmail.com with your "From" address.
 	// This address must be verified with Amazon SES.
-	// Sender = "customer@gmail.com"
+	// Sender = "s.kelvinjohn@gmail.com"
 
 	// Replace s.kelvinjohn@gmail.com with a "To" address. If your account
 	// is still in the sandbox, this address must be verified.
@@ -105,7 +105,12 @@ func buildEmailInput(requestJson types.SendEmailRequestJson) types.EmailInput {
 	return emailInput
 }
 
-func buildRawEmailInput(requestJson types.SendEmailRequestJson) types.EmailInput {
+func BuildRawEmailInput(requestJson types.SendEmailRequestJson) types.EmailInput {
+	log.Println(">>> Sending e-mail with subject: " + requestJson.Subject)
+	log.Printf("To: %s", requestJson.ToRecipients)
+	log.Printf("Cc: %s", requestJson.CcRecipients)
+	log.Printf("Bcc: %s", requestJson.BccRecipients)
+
 	buf := new(bytes.Buffer)
 	writer := multipart.NewWriter(buf)
 
@@ -123,7 +128,7 @@ func buildRawEmailInput(requestJson types.SendEmailRequestJson) types.EmailInput
 
 	// todo set custom headers here
 	header.Set("X-SES-CONFIGURATION-SET", "Platform-dev")
-	header.Set("List-Unsubscribe", "<mailto:customer@gmail.com?subject=unsubscribe>")
+	header.Set("List-Unsubscribe", "<mailto:s.kelvinjohn@gmail.com?subject=unsubscribe>")
 
 	_, err := writer.CreatePart(header)
 	if err != nil {
@@ -221,11 +226,7 @@ func buildRawEmailInput(requestJson types.SendEmailRequestJson) types.EmailInput
 		emailInput.Error = fmt.Errorf("invalid e-mail content")
 	}
 
-	log.Println(s)
-
 	s = strings.SplitN(s, "\n", 2)[1]
-
-	//log.Println(s)
 
 	raw := ses.RawMessage{
 		Data: []byte(s),
@@ -248,79 +249,19 @@ func buildRawEmailInput(requestJson types.SendEmailRequestJson) types.EmailInput
 	return emailInput
 }
 
-func SendEmail(w http.ResponseWriter, r *http.Request) {
-	var requestJson types.SendEmailRequestJson
-
-	body, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(body, &requestJson)
-
-	buildEmailInput := decorator.BuildEmailInputDecorate(buildEmailInput)
-	input := buildEmailInput(requestJson)
-
-	if input.Error != nil {
-		utils.HandleError(w, input.Error)
-	}
-
-	svc, err := createSesSession(input)
-	if err != nil {
-		utils.HandleError(w, err)
-	}
-
-	// Attempt to send the email.
-	result, err := svc.SendEmail(input.SendEmailInput)
-
-	// Display error messages if they occur.
-	if err != nil {
-		utils.HandleSesError(w, err)
-	}
-
-	fmt.Println("Email Sent to address: ")
-	fmt.Println(requestJson.ToRecipients)
-	fmt.Println(result)
-
-	return
-}
-
-func SendRawEmail(w http.ResponseWriter, r *http.Request) {
-	var requestJson types.SendEmailRequestJson
-
-	body, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(body, &requestJson)
-
-	buildRawEmailInput := decorator.BuildEmailInputDecorate(buildRawEmailInput)
-	input := buildRawEmailInput(requestJson)
-
-	if input.Error != nil {
-		utils.HandleError(w, input.Error)
-	}
-
-	svc, err := createSesSession(input)
-	if err != nil {
-		utils.HandleError(w, err)
-	}
-
-	// Attempt to send the email.
-	result, err := svc.SendRawEmail(input.SendRawEmailInput)
-
-	// Display error messages if they occur.
-	if err != nil {
-		utils.HandleSesError(w, err)
-	}
-
-	fmt.Println("Email Sent to address: ")
-	fmt.Println(requestJson.ToRecipients)
-	fmt.Println(result)
-
-	return
-}
-
-func createSesSession(input types.EmailInput) (*ses.SES, error) {
+func CreateSesSession(input types.EmailInput) (*ses.SES, error) {
 	// Create a new session in the us-west-2 region.
 	// Replace us-west-2 with the AWS Region you're using for Amazon SES.
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(env.GO_MAILER_AWS_REGION),
-		Credentials: credentials.NewStaticCredentials(env.GO_MAILER_AWS_ACCESS_KEY, env.GO_MAILER_AWS_SECRET_KEY, ""),
 	})
+
+	if env.GO_MAILER_AWS_ACCOUNT != "" {
+		sess, err = session.NewSession(&aws.Config{
+			Region:      aws.String(env.GO_MAILER_AWS_REGION),
+			Credentials: credentials.NewSharedCredentials("", env.GO_MAILER_AWS_ACCOUNT),
+		})
+	}
 
 	if err != nil {
 		return nil, err
@@ -330,4 +271,95 @@ func createSesSession(input types.EmailInput) (*ses.SES, error) {
 	svc := ses.New(sess)
 
 	return svc, nil
+}
+
+func GetInboxService(getInboxRequestJson types.GetInboxRequestJson) (error, []types.PartialMail) {
+	log.Println(">>> Retrieving inbox for " + getInboxRequestJson.Email)
+
+	collection := Client.Database(env.GO_MAILER_DB_NAME).Collection("logs")
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+
+	var filterOptions bson.D
+	if getInboxRequestJson.Email != "" {
+		filterOptions = bson.D{{ Key: "to_recipients", Value: getInboxRequestJson.Email }}
+	}
+
+	findOptions := options.Find()
+	findOptions.SetSkip(getInboxRequestJson.Skip)
+	findOptions.SetLimit(getInboxRequestJson.Limit)
+	findOptions.SetSort(bson.D{{"created_at", getInboxRequestJson.Sort }})
+
+	var partialMail types.PartialMail
+	cur, err := collection.Find(ctx, filterOptions, findOptions)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var partialMails []types.PartialMail
+	for cur.Next(ctx) {
+		err := cur.Decode(&partialMail)
+		partialMails = append(partialMails, partialMail)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	return nil, partialMails
+}
+
+func GetMessageService(getMessageRequestJson types.GetMessageRequestJson) (error, types.Mail) {
+	log.Println(">>> Retrieving message " + getMessageRequestJson.MessageId)
+
+	collection := Client.Database(env.GO_MAILER_DB_NAME).Collection("logs")
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+
+	objId, _ := primitive.ObjectIDFromHex(getMessageRequestJson.MessageId)
+	filterOptions := bson.D{
+		{ "_id", objId },
+		{ "to_recipients", getMessageRequestJson.Email },
+	}
+
+	log.Println(filterOptions)
+
+	var mail types.Mail
+	cur, err := collection.Find(ctx, filterOptions)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for cur.Next(ctx) {
+		err := cur.Decode(&mail)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	return nil, mail
+}
+
+func SaveEmail(requestJson types.SendEmailRequestJson){
+	//log.Println(">>> Saving e-mail with subject: " + requestJson.Subject)
+	//log.Printf("To: %s", requestJson.ToRecipients)
+	//log.Printf("Cc: %s", requestJson.CcRecipients)
+	//log.Printf("Bcc: %s", requestJson.BccRecipients)
+
+	collection := Client.Database(env.GO_MAILER_DB_NAME).Collection("logs")
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+
+	_, err := collection.InsertOne(ctx, bson.D{
+		{ "attachments", requestJson.Attachments },
+		{ "reply_to", requestJson.ReplyTo },
+		{ "sender", requestJson.Sender },
+		{ "html_body", requestJson.HtmlBody },
+		{ "subject", requestJson.Subject },
+		{ "bcc_recipients", requestJson.BccRecipients },
+		{ "cc_recipients", requestJson.CcRecipients },
+		{ "to_recipients", requestJson.ToRecipients },
+		{ "is_mock_email", requestJson.IsMockEmail },
+		{ "created_at", time.Now() },
+	})
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }

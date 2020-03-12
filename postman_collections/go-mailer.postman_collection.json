@@ -1,0 +1,120 @@
+{
+	"info": {
+		"_postman_id": "ade549e8-c862-4009-bd97-3b2fd71e948a",
+		"name": "go-mailer",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "{{domain}}/api/send-email",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "ad09f7f9-70c9-4a95-b1d1-3ef4f25a93f1",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"isMockEmail\": false,\n\t\"sender\": \"customer@gmail.com\",\n\t\"replyTo\": \"customer@gmail.com\",\n\t\"toRecipients\": [\"s.kelvinjohn@gmail.com\"],\n\t\"subject\": \"Amazon SES Test (AWS SDK for Go)\",\n\t\"htmlBody\": \"<h1>Amazon SES Test Email (AWS SDK for Go)</h1><p>This email was sent with <a href='https://aws.amazon.com/ses/'>Amazon SES</a> using the <a href='https://aws.amazon.com/sdk-for-go/'>AWS SDK for Go</a>.</p>\",\n\t\"ccRecipients\": [],\n\t\"bccRecipients\": []\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{domain}}/api/send-email",
+					"host": [
+						"{{domain}}"
+					],
+					"path": [
+						"api",
+						"send-email"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{domain}}/api/s.kelvinjohn@gmail.com/mails",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "ad09f7f9-70c9-4a95-b1d1-3ef4f25a93f1",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{domain}}/api/inbox/s.kelvinjohn@gmail.com?skip=0&limit=2&sort=-1",
+					"host": [
+						"{{domain}}"
+					],
+					"path": [
+						"api",
+						"inbox",
+						"s.kelvinjohn@gmail.com"
+					],
+					"query": [
+						{
+							"key": "skip",
+							"value": "0"
+						},
+						{
+							"key": "limit",
+							"value": "2"
+						},
+						{
+							"key": "sort",
+							"value": "-1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{domain}}/api/inbox/s.kelvinjohn@gmail.com/5e68b14c1f5363559812a99b",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "ad09f7f9-70c9-4a95-b1d1-3ef4f25a93f1",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{domain}}/api/inbox/s.kelvinjohn@gmail.com/5e6996147355fb1e9b1c0bf3",
+					"host": [
+						"{{domain}}"
+					],
+					"path": [
+						"api",
+						"inbox",
+						"s.kelvinjohn@gmail.com",
+						"5e6996147355fb1e9b1c0bf3"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

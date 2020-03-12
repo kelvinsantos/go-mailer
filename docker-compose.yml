@@ -9,6 +9,16 @@ services:
       - .env
     ports:
       - "9090:9090"
+    volumes:
+      - /home/ubuntu/.aws:/root/.aws
+
+  mongo:
+    image: mongo:4.1.13-bionic
+    volumes:
+      - ./mongo-data/:/data/db/
+      - ./mongo-backup/:/mongo-backup/
+    ports:
+      - "27017:27017"
 
   remark:
     image: umputun/docker-logger

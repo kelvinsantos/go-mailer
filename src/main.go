@@ -1,10 +1,11 @@
 package main
 
 import (
-	"MailerGo/src/env"
-	"MailerGo/src/store"
-	"MailerGo/src/types"
-	"MailerGo/src/utils"
+	"kelvin.com/mailer/src/controllers"
+	"kelvin.com/mailer/src/env"
+	"kelvin.com/mailer/src/services"
+	"kelvin.com/mailer/src/types"
+	"kelvin.com/mailer/src/utils"
 	"encoding/json"
 	"fmt"
 	"github.com/asaskevich/govalidator"
@@ -13,6 +14,10 @@ import (
 	"log"
 	"net/http"
 )
+
+func Hello() string {
+	return "Hello, world."
+}
 
 func middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -39,12 +44,21 @@ func main() {
 	// initialize store and env
 	utils.Init()
 
+	// initialize mongo client
+	services.SetClient(utils.GetClient())
+
 	govalidator.SetFieldsRequiredByDefault(true)
 
 	router := mux.NewRouter().StrictSlash(true)
 
+	router.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+	})
+
 	// Endpoints to expose
-	router.HandleFunc("/api/send-email", store.SendRawEmail).Methods("POST")
+	router.HandleFunc("/api/inbox/{email_address}", controllers.GetInboxByEmail).Methods("GET")
+	router.HandleFunc("/api/inbox/{email_address}/{message_id}", controllers.GetMessageById).Methods("GET")
+	router.HandleFunc("/api/send-email", controllers.SendRawEmail).Methods("POST")
 
 	// Add custom middleware
 	router.Use(middleware)

@@ -1,9 +1,9 @@
 package decorator
 
 import (
-	"MailerGo/src/env"
-	"MailerGo/src/types"
 	"github.com/asaskevich/govalidator"
+	"kelvin.com/mailer/src/env"
+	"kelvin.com/mailer/src/types"
 	"strings"
 )
 
@@ -27,19 +27,19 @@ func BuildEmailInputDecorate(fn Object) Object {
 			if requestJson.IsMockEmail == true {
 				var toRecipients []string
 				for _, element := range requestJson.ToRecipients {
-					toRecipients = append(toRecipients, strings.Replace(element, "@", "_", -1) + env.GO_MOCK_EMAIL)
+					toRecipients = append(toRecipients, strings.Replace(element, "@", "_", -1) + env.GO_MAILER_MOCK_EMAIL)
 				}
 				requestJson.ToRecipients = toRecipients
 
 				var ccRecipients []string
 				for _, element := range requestJson.CcRecipients {
-					ccRecipients = append(ccRecipients, strings.Replace(element, "@", "_", -1) + env.GO_MOCK_EMAIL)
+					ccRecipients = append(ccRecipients, strings.Replace(element, "@", "_", -1) + env.GO_MAILER_MOCK_EMAIL)
 				}
 				requestJson.CcRecipients = ccRecipients
 
 				var bccRecipients []string
 				for _, element := range requestJson.BccRecipients {
-					bccRecipients = append(bccRecipients, strings.Replace(element, "@", "_", -1) + env.GO_MOCK_EMAIL)
+					bccRecipients = append(bccRecipients, strings.Replace(element, "@", "_", -1) + env.GO_MAILER_MOCK_EMAIL)
 				}
 				requestJson.BccRecipients = bccRecipients
 			}
