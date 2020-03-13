@@ -57,7 +57,7 @@ func main() {
 
 	// Endpoints to expose
 	router.HandleFunc("/api/inbox/{email_address}", controllers.GetInboxByEmail).Methods("GET")
-	router.HandleFunc("/api/inbox/{email_address}/{message_id}", controllers.GetMessageById).Methods("GET")
+	router.HandleFunc("/api/message/{message_id}", controllers.GetMessageById).Methods("GET")
 	router.HandleFunc("/api/send-email", controllers.SendRawEmail).Methods("POST")
 
 	// Add custom middleware

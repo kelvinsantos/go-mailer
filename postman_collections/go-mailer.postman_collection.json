@@ -90,7 +90,7 @@
 			"response": []
 		},
 		{
-			"name": "{{domain}}/api/inbox/s.kelvinjohn@gmail.com/5e68b14c1f5363559812a99b",
+			"name": "{{domain}}/api/message/5e68b14c1f5363559812a99b",
 			"request": {
 				"method": "GET",
 				"header": [
@@ -101,7 +101,7 @@
 					}
 				],
 				"url": {
-					"raw": "{{domain}}/api/inbox/s.kelvinjohn@gmail.com/5e6996147355fb1e9b1c0bf3",
+					"raw": "{{domain}}/api/message/5e6996147355fb1e9b1c0bf3",
 					"host": [
 						"{{domain}}"
 					],

@@ -308,15 +308,14 @@ func GetInboxService(getInboxRequestJson types.GetInboxRequestJson) (error, []ty
 }
 
 func GetMessageService(getMessageRequestJson types.GetMessageRequestJson) (error, types.Mail) {
-	log.Println(">>> Retrieving message " + getMessageRequestJson.MessageId)
+	log.Println(">>> Retrieving message " + getMessageRequestJson.Id)
 
 	collection := Client.Database(env.GO_MAILER_DB_NAME).Collection("logs")
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
-	objId, _ := primitive.ObjectIDFromHex(getMessageRequestJson.MessageId)
+	objId, _ := primitive.ObjectIDFromHex(getMessageRequestJson.Id)
 	filterOptions := bson.D{
 		{ "_id", objId },
-		{ "to_recipients", getMessageRequestJson.Email },
 	}
 
 	log.Println(filterOptions)

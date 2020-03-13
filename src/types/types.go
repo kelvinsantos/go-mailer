@@ -38,8 +38,7 @@ type GetInboxRequestJson struct {
 }
 
 type GetMessageRequestJson struct {
-	Email			string
-	MessageId		string
+	Id		string
 }
 
 type PartialMail struct {

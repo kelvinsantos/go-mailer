@@ -72,8 +72,7 @@ func GetMessageById(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
 	getMessageRequestJson := types.GetMessageRequestJson{
-		Email: params["email_address"],
-		MessageId: params["message_id"],
+		Id: params["message_id"],
 	}
 
 	err, response := services.GetMessageService(getMessageRequestJson)
